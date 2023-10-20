@@ -1,61 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>每日上传</title>
+    <title>日期选择器</title>
 </head>
 <body>
-    <h1>每日上传</h1>
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-        <label for="date">选择日期：</label>
-        <input type="date" id="date" name="date" required>
-        <br>
-        <label for="text">输入文字：</label>
-        <textarea id="text" name="text" required></textarea>
-        <br>
-        <label for="image">上传图片：</label>
-        <input type="file" id="image" name="image" accept="image/*">
-        <br>
-        <button type="submit">上传</button>
-    </form>
-    
-    <h2>选择日期：</h2>
-    <input type="date" id="datePicker" required>
-    <button onclick="showUploadedData()">查看</button>
+    <h1>日期选择器</h1>
+    <input type="date" id="selectedDate">
+    <button onclick="showSelectedData()">显示</button>
 
-    <div id="uploadedData">
-        <!-- 在此显示上传的图片和文字 -->
+    <div id="displayData">
+        <h2>已选择日期的图片和文字</h2>
+        <img id="selectedImage" src="" alt="图片">
+        <p id="selectedText"></p>
     </div>
 
     <script>
-        function showUploadedData() {
-            // 获取用户选择的日期
-            const selectedDate = document.getElementById("datePicker").value;
+        function showSelectedData() {
+            const selectedDate = document.getElementById("selectedDate").value;
 
-            // 向服务器请求同一天上传的文件信息
-            fetch(`/get_uploaded_data?date=${selectedDate}`)
-                .then(response => response.json())
+            // 构建GitHub仓库中的文件路径，根据选择的日期
+            const imageUrl = `https://raw.githubusercontent.com/your-username/your-repo-name/main/images/${selectedDate}.png`;
+            const textUrl = `https://raw.githubusercontent.com/your-username/your-repo-name/main/texts/${selectedDate}.txt`;
+
+            // 设置图片的src属性
+            document.getElementById("selectedImage").src = imageUrl;
+
+            // 获取并设置文本
+            fetch(textUrl)
+                .then(response => response.text())
                 .then(data => {
-                    // 清空展示区域
-                    document.getElementById("uploadedData").innerHTML = '';
-
-                    // 遍历文件信息并展示
-                    data.forEach(fileInfo => {
-                        if (fileInfo.type === 'image') {
-                            const image = document.createElement("img");
-                            image.src = fileInfo.path;
-
-                            // 将图片添加到展示区域
-                            document.getElementById("uploadedData").appendChild(image);
-                        } else if (fileInfo.type === 'text') {
-                            const text = document.createElement("p");
-                            text.innerText = fileInfo.text;
-
-                            // 将文字添加到展示区域
-                            document.getElementById("uploadedData").appendChild(text);
-                        }
-                    });
+                    document.getElementById("selectedText").textContent = data;
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error("无法获取文本数据：" + error);
+                });
         }
     </script>
 </body>
